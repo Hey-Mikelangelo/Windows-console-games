@@ -63,6 +63,7 @@ private:
 		score = 0;
 		lenght = 3;
 		alive = true;
+		movDir = 97;
 		Snake[0] = {width / 2, heigh / 2};
 		Snake[1] = { width / 2 + 1, heigh / 2 };
 		Snake[2] = { width / 2 + 2, heigh / 2 };
@@ -183,6 +184,19 @@ private:
 			}
 		}
 	}
+	void StopUntilEnter() {
+		int key;
+		for (;;) {
+			if (_kbhit() == 1)
+			{
+				key = _getch();
+				if (key == 13) {
+					return;
+				}
+			}
+			Sleep(10);
+		}
+	}
 	int SnakeGameLoop() {
 		int i = 0;
 		do {
@@ -199,6 +213,7 @@ private:
 				break;
 			}
 		} while (alive);
+		StopUntilEnter();
 		if (!alive) {
 			return 0;
 		}
