@@ -4,75 +4,208 @@
 #include "SnakeGame.h"
 #include <cwchar>
 #include <string>
-
+#include "Menu.h"
 using std::cout;
 using std::endl;
 
 typedef void(*FunctionPointer)();
 
-enum GameCode {
-    Snake
-};
 
-void Init();
-void MainMenuLoop();
-void SelectGameMenuLoop();
-void Input();
-void SetMenuChoice();
-void DrawMenu(std::string MenuItems[]);
-void DrawMenuTitle(std::string title, int offset = 0);
-void WriteMenuLine(short xStart, short y, const char* line, short indx);
-void gotoxy(short x, short y);
-void cls();
-void WriteLine(short xStart, short y, const char* line);
-void Exit();
-void EndGameMenuLoop();
-void SetEndGameMenuLoopParams(int GameExitCode, int score, GameCode game);
-
-void SnakeGameLoop();
-void SnakeRestart();
-void SnakeDifficulty();
-void SnakeExit();
-
-//global 
-HANDLE consoleHandle;
-CONSOLE_SCREEN_BUFFER_INFO csbiScreenInfo;
-CONSOLE_CURSOR_INFO cursorInfo;
-CONSOLE_FONT_INFOEX cfi;
-
-//function
-COORD gotoCoord;
-short screenX, screenY, offset, placeToWrite, keyCode, menuItemCount;
-int menuChoice;
-char inp;
-bool hitEnter;
-//EndGameMenuLoop funtion variables
-int gameExitCode, gameScore;
-GameCode gameCode;
-
-
-std::string MainMenuItems[] = {"Select Game", "Options", "Exit"};
-FunctionPointer MainMenuButtonFunc[] = { SelectGameMenuLoop, Exit, Exit };
-
-std::string GameMenuItems[] = { "Classic Snake", "Back" };
-FunctionPointer SelectGameMenuButtonFunc[] = { EndGameMenuLoop, MainMenuLoop };
-//Snake Game
-std::string SnakeMenuItems[] = { "Play", "Difficulty", "Exit" };
-std::string SnakeOptionsMenuItems[] = { "Width", "Heigh", "Difficulty", "Back" };
-FunctionPointer SnakeButtonFunc[] = { SnakeRestart, SnakeDifficulty, SnakeExit };
-short snakeGameWidth, snakeGameHeigh, snakeGameDifficulty, SnakeGameScore;
+//enum KeyCode {
+//    W = 119, S = 115, A = 97, D = 100, SPACE = 32, ENTER = 13
+//};
+//void Init();
+//void MenuMainLoop();
+//void MenuGameSelectLoop();
+//void Input();
+//void SetMenuChoice();
+//void DrawMenu(std::string MenuItems[]);
+//void DrawMenuValuesLoop(std::string name, short& value, short step);
+//void DrawMenuTitle(std::string title, int offset = 0);
+//void DrawMenuLine(short xStart, short y, const char* line, short indx);
+//void gotoxy(short x, short y);
+//void cls();
+//void WriteLine(short xStart, short y, const char* line);
+//void Exit();
+//void EndGameMenuLoop();
+////void SetEndGameMenuLoopParams(int GameExitCode, int score, GameCode game);
+//
+//void SnakeMenuLoop();
+//void SnakeRestart();
+//void SnakeWidth();
+//void SnakeDifficulty();
+//void BackSnake();
+//
+//////global 
+////HANDLE consoleHandle;
+////CONSOLE_SCREEN_BUFFER_INFO csbiScreenInfo;
+////CONSOLE_CURSOR_INFO cursorInfo;
+////CONSOLE_FONT_INFOEX cfi;
+//
+////function
+//COORD gotoCoord;
+//short screenX, screenY, offset, placeToWrite, keyCode, menuItemCount;
+//int menuChoice;
+//char inp;
+//bool hitEnter;
+////EndGameMenuLoop funtion variables
+//int gameExitCode, gameScore;
+//GameCode gameCode;
 
 
+
+
+
+
+
+
+
+
+////main menu
+//void MenuGameSelectLoop();
+//void Exit();
+//
+////game select menu
+//void SnakeMenuLoop();
+//void MenuGameSelectBack();
+//
+////
+//void PlaySnake();
+////void MenuOptionsSnake();
+//void BackSnake();
+////void SnakeWidth();
+//void SnakeDifficulty();
+//
+////main menu
+//FunctionPointer MenuMainButtonFunc[] = { MenuGameSelectLoop, Exit, Exit };
+//
+////game select menu
+//FunctionPointer MenuGameSelectButtonFunc[] = { SnakeMenuLoop, MenuGameSelectBack };
+//
+////Snake Game menu
+//FunctionPointer SnakeMenuButtonFunc[] = { PlaySnake, MenuOptionsSnake, BackSnake };
+//
+//short SnakeMenuWidth, SnakeMenuHeigh, SnakeMenuDifficulty, SnakeMenuScore;
+
+//void MenuMainClose();
+//void MenuGameSelectClose();
+//void MenuSnakeMenuClose();
+//void MenuOptionsClose();
+//void MenuSnakeMenuClose();
+//void SnakeMenuLoop();
+
+HANDLE consoleHandle = GetStdHandle(STD_OUTPUT_HANDLE);
+
+Menu MenuMain(consoleHandle); //Main menu
+Menu MenuGameSelect(consoleHandle);
+Menu MenuOptions(consoleHandle);
+Menu FuncMainClose;
+
+/*Menu Game Select */ 
+Menu MenuSnakeMenu(consoleHandle);
+Menu FuncGameSelectClose;
+
+/*Menu Options*/
+Menu FuncOptions1;
+Menu FuncOptions2;
+Menu FuncOptionsClose;
+
+/*Menu Snake Menu*/
+Menu FuncSnakeGameStart;
+Menu MenuSnakeOptions(consoleHandle);
+Menu FuncSnakeMenuClose;
+
+//Menu Snake Options
+Menu FuncSnakeWidth;
+Menu FuncSnakeHeigh;
+Menu FuncSnakeDifficulty;
+Menu FuncSnakeOptionsClose;
+
+
+//Games
+SnakeGame SnakeGameWindow(consoleHandle);
+short snakeGameWidth = 12;
+short snakeGameHeigh = 12; 
+short snakeGameDifficulty = 10;
+
+
+std::string MenuMainButtons[] = { "Select Game", "Options", "Exit" };
+Menu* MenuMainLinks[] = { &MenuGameSelect, &MenuOptions/*&MenuOptions*/,&FuncMainClose };
+
+std::string MenuOptionsButtons[] = { "Nothing to do", "No Options", "Back"}; 
+Menu* MenuOptionsLinks[] = { &FuncOptions1, &FuncOptions2, &FuncOptionsClose };
+
+std::string MenuGameSelectButtons[] = { "Classic Snake", "Back" };
+Menu* MenuGameSelectLinks[] = { &MenuSnakeMenu, &FuncGameSelectClose };
+
+std::string MenuSnakeMenuButtons[] = { "Play", "Options", "Back" };
+Menu* MenuSnakeMenuLinks[] = { &FuncSnakeGameStart, &MenuSnakeOptions/*&MenuSnakeOptions*/, &FuncSnakeMenuClose };
+
+std::string MenuSnakeOptionsButtons[] = { "Width", "Heigh", "Difficulty", "Back" };
+Menu* MenuSnakeOptionsLinks[] = { &FuncSnakeWidth, &FuncSnakeHeigh, &FuncSnakeDifficulty, &FuncSnakeOptionsClose };
+
+
+
+void MenuMainClose() {
+    MenuMain.close();
+}
+void MenuGameSelectClose() {
+    MenuGameSelect.close();
+}
+void MenuOptionsClose() {
+    MenuOptions.close();
+}
+void MenuSnakeMenuClose() {
+    MenuSnakeMenu.changeSubTitle("");
+    MenuSnakeMenu.close();
+}
+void MenuSnakeOptionsClose() {
+    MenuSnakeOptions.close();
+}
+void SnakeMenuStart() {
+    SnakeGameWindow.setWidthHeigh(snakeGameWidth, snakeGameHeigh);
+    SnakeGameWindow.setDifficulty(snakeGameDifficulty);
+    if (SnakeGameWindow.Start() == 0) {
+        std::string subtitle = "You lose. Score: " + std::to_string(SnakeGameWindow.getScore());
+        MenuSnakeMenu.changeSubTitle(subtitle);
+        FuncSnakeGameStart.close();
+    }
+    else {
+        std::string subtitle = "You won. Score: " + std::to_string(SnakeGameWindow.getScore());
+        MenuSnakeMenu.changeSubTitle(subtitle);
+        FuncSnakeGameStart.close();
+    }
+
+}
 
 int main()
 {
-    consoleHandle = GetStdHandle(STD_OUTPUT_HANDLE);
-    //ConsoleGames games = ConsoleGames(consoleHandle);
-    
-    Init();
-    MainMenuLoop();
+    /*Menu main*/
+    MenuMain.initMenu("Main menu", MenuMainButtons, MenuMainLinks, 3);
+    FuncMainClose.initFuntion(MenuMainClose);
+
+    //Menu game select
+    MenuGameSelect.initMenu("Select a game", MenuGameSelectButtons, MenuGameSelectLinks, 2);
+    FuncGameSelectClose.initFuntion(MenuGameSelectClose);
+
+    //Menu options
+    MenuOptions.initMenu("Options", MenuOptionsButtons, MenuOptionsLinks, 3);
+    FuncOptionsClose.initFuntion(MenuOptionsClose);
+
+    //Menu Snake Menu
+    MenuSnakeMenu.initMenu("Snake Game", MenuSnakeMenuButtons, MenuSnakeMenuLinks, 3);
+    FuncSnakeGameStart.initFuntion(SnakeMenuStart);
+    MenuSnakeOptions.initMenu("Snake Game Options", MenuSnakeOptionsButtons, MenuSnakeOptionsLinks, 4);
+    FuncSnakeMenuClose.initFuntion(MenuSnakeMenuClose);
+
+    //Menu Snake Options
+    FuncSnakeOptionsClose.initFuntion(MenuSnakeOptionsClose);
+
+
+    MenuMain.show();
     return 0;
 }
+#ifdef FUNTIONAL
 
 void Init() {
     //main console
@@ -93,9 +226,9 @@ void Init() {
     screenX = csbiScreenInfo.srWindow.Right;
     screenY = csbiScreenInfo.srWindow.Bottom;
     //Snake game default variables
-    snakeGameWidth = 15;
-    snakeGameHeigh = 12;
-    snakeGameDifficulty = 10;
+    SnakeMenuWidth = 15;
+    SnakeMenuHeigh = 12;
+    SnakeMenuDifficulty = 10;
 }
 
 void MenuSelectLoop(std::string title, std::string additTitle, std::string* MenuItems, int count = menuItemCount) {
@@ -115,17 +248,17 @@ void MenuSelectLoop(std::string title, std::string additTitle, std::string* Menu
 
 }
 
-void MainMenuLoop() {
-    MenuSelectLoop("Main Menu", "", MainMenuItems, 3);
-    MainMenuButtonFunc[menuChoice]();
+void MenuMainLoop() {
+    MenuSelectLoop("Main Menu", "", MenuMainButtons, 3);
+    MenuMainButtonFunc[menuChoice]();
 }
 void SelectGameMenuLoop() {
-    MenuSelectLoop("Select Game", "", GameMenuItems, 2);
+    MenuSelectLoop("Select Game", "", MenuGameSelectButtons, 2);
 
     //if selected Snake Game, set params for snake game
     if (menuChoice == 0) SetEndGameMenuLoopParams(2, 0, Snake);
 
-    SelectGameMenuButtonFunc[menuChoice]();
+    MenuGameSelectButtonFunc[menuChoice]();
 
 }
 void EndGameMenuLoop() {
@@ -141,11 +274,11 @@ void EndGameMenuLoop() {
 
     switch (game) {
         case Snake:
-            SnakeGameScore = score;
+            SnakeMenuScore = score;
             menuItemCount = 3;
-            MenuItems = SnakeMenuItems;
+            MenuItems = SnakeMenuButtons;
             menuTitle = "Play Snake";
-            MenuButtonFuntions = SnakeButtonFunc;
+            MenuButtonFuntions = SnakeMenuButtonFunc;
             break;
         default:
             menuItemCount = 0;
@@ -216,17 +349,41 @@ void DrawMenuTitle(std::string title, int offsetY ){
     gotoxy(placeToWrite, (screenY / 2) - 3 + offsetY);
     cout << title;
 }
+void DrawMenuValues(std::string name, int menuItemIdx, int xOffset) {
+    int yCoord = (screenY / 2) + menuItemIdx;
+    int xCoord = screenX / 2 + xOffset;
+    
+}
 void DrawMenu(std::string MenuItems[]) {
     static short i;
     i = 0;
     while(i < menuItemCount) {
         offset = (short)(MenuItems[i].length());
         placeToWrite = screenX / 2 - (offset / 2);
-        WriteMenuLine(placeToWrite, (screenY / 2) + i, MenuItems[i].c_str(), i);
+        DrawMenuLine(placeToWrite, (screenY / 2) + i, MenuItems[i].c_str(), i);
         i++;
     }
 }
-void WriteMenuLine(short xStart, short y, const char* line, short indx) {
+void ChangeMenuValue(short& value, short step, int prevInput) {
+    if (prevInput == -1 && keyCode == S) {
+        value -= step;
+    }
+    else  if (prevInput == -1 && keyCode == W) {
+        value += step;
+    }
+}
+void DrawMenuValuesLoop(std::string name, short& value, short step = 1) {
+    hitEnter = false;
+    int prevInput;
+    do {
+        prevInput = -1;
+        Input();
+        SetMenuChoice();
+        ChangeMenuValue(value, step, prevInput);
+        Sleep(20);
+    } while (!hitEnter);
+}
+void DrawMenuLine(short xStart, short y, const char* line, short indx) {
     //FOREGROUND:  BLUE = 1, GREEN = 2, RED = 4, INTENSITY = 8
     if (indx == menuChoice) {
         SetConsoleTextAttribute(consoleHandle, 10);
@@ -261,39 +418,33 @@ void Exit() {
 }
 
 void SnakeRestart() {
-    SnakeGameLoop();
+    SnakeMenuLoop();
 }
 void SnakeDifficulty() {
-    cls();
-    hitEnter = false;
-    menuChoice = 0;
-    menuItemCount = 4;
-    //drawing Message
-    DrawMenuTitle("Snake Game Options", 0);
-    do {
-        Input();
-        SetMenuChoice();
-        DrawMenu(SnakeOptionsMenuItems);
-        Sleep(10);
-    } while (!hitEnter);
-
+    MenuSelectLoop("Snake Game MenuOptions", "", SnakeMenuOptionsMenuBottons, 4);
     switch (menuChoice) {
         case 0:
             //change width
+            DrawMenuValuesLoop("Width", SnakeMenuWidth);
             break;
         case 1:
             //change heigh
+            DrawMenuValuesLoop("Heigh", SnakeMenuHeigh);
             break;
         case 2:
             //change difficulty
+            DrawMenuValuesLoop("Difficulty", SnakeMenuDifficulty);
             break;
         case 3:
-            SetEndGameMenuLoopParams(2, SnakeGameScore, Snake);
+            SetEndGameMenuLoopParams(2, SnakeMenuScore, Snake);
             EndGameMenuLoop();
             break;
     }
 }
-void SnakeExit() {
+void SnakeWidth() {
+
+}
+void BackSnake() {
     SelectGameMenuLoop();
 }
 void SetEndGameMenuLoopParams(int exitCode, int score, GameCode game) {
@@ -301,14 +452,13 @@ void SetEndGameMenuLoopParams(int exitCode, int score, GameCode game) {
     gameScore = score;
     gameCode = game;
 }
-void SnakeGameLoop() {
+void SnakeMenuLoop() {
     cls();
     SetConsoleTextAttribute(consoleHandle, 3);
     hitEnter = false;
-    SnakeGame snakeGame(consoleHandle, snakeGameWidth, snakeGameHeigh, snakeGameDifficulty);
-    int exitCode = snakeGame.Start();
-    SetEndGameMenuLoopParams(exitCode, snakeGame.getScore(), Snake);
+    SnakeMenu SnakeMenu(consoleHandle, SnakeMenuWidth, SnakeMenuHeigh, SnakeMenuDifficulty);
+    int exitCode = SnakeMenu.Start();
+    SetEndGameMenuLoopParams(exitCode, SnakeMenu.getScore(), Snake);
     EndGameMenuLoop();
-
 }
-
+#endif

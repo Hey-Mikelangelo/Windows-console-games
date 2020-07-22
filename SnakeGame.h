@@ -3,13 +3,15 @@
 #include <iostream>
 #include <array>
 #include <random>
+#include "Menu.h"
+typedef void(*FunctionPointer)();
 
-class SnakeGame {
+class SnakeGame{
 public:
-	SnakeGame(HANDLE consoleHandle_, short width_, short heigh_, short difficulty_)
-		: consoleHandle(consoleHandle_), 
-		width(width_), heigh(heigh_), 
-		difficulty(difficulty_){}
+	SnakeGame(HANDLE consoleHandle_) {
+		consoleHandle = consoleHandle_;
+	}
+	//returning 0 if fail, 1 if win
 	int Start() {
 		SetScreen();
 		CalculateOffsets();
@@ -17,12 +19,28 @@ public:
 		InitSnake();
 		return SnakeGameLoop();
 	}
+	void setWidthHeigh(short width_, short heigh_) {
+		width = width_;
+		heigh = heigh_;
+	}
+	void setDifficulty(short difficulty_) {
+		difficulty = difficulty_;
+	}
 	short getScore() {
 		return score;
 	}
+	short getWidth() {
+		return width;
+	}
+	short getHeigh() {
+		return heigh;
+	}
+	short getDifficulty() {
+		return difficulty;
+	}
 private:
+	short  width = 10, heigh = 10, difficulty = 10;
 	HANDLE consoleHandle;
-	short  width, heigh, difficulty;
 	std::array<COORD, 100> Snake;
 	short score, lenght, offsetX, offsetY, screenX, screenY, trailX, trailY, movDir;
 	int keyCode, foodX, foodY;;
@@ -107,8 +125,8 @@ private:
 		}		
 	}
 	//true if there is no snake in coords
-	bool CheckForSnake(int x, int y) {
-		for (int i = 0; i < lenght; i++) {
+	bool CheckForSnake(int x, int y, int startIdx = 0) {
+		for (int i = 0 + startIdx; i < lenght; i++) {
 			if (Snake[i].X == x && Snake[i].Y == y) {
 				return false;
 			}
@@ -163,6 +181,12 @@ private:
 			score++;
 			CreateFood();
 			AddSegment();
+		}
+		int headX, headY;
+		headX = Snake[0].X;
+		headY = Snake[0].Y;
+		if (!CheckForSnake(headX, headY, 1)) {
+			alive = false;
 		}
 	}
 	void DrawDynObj() {
