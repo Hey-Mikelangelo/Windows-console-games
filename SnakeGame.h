@@ -1,15 +1,20 @@
 #pragma once
-#include <windows.h>
-#include <iostream>
+#include "Headers.h"
 #include <array>
 #include <random>
 #include "Menu.h"
+#include "Input.h"
+
 typedef void(*FunctionPointer)();
+
+
 
 class SnakeGame{
 public:
-	SnakeGame(HANDLE consoleHandle_) {
+	SnakeGame(HANDLE consoleHandle_, int* inputVar_) {
+
 		consoleHandle = consoleHandle_;
+		inputVar = inputVar_;
 	}
 	//returning 0 if fail, 1 if win
 	int Start() {
@@ -42,12 +47,16 @@ private:
 	short  width = 10, heigh = 10, difficulty = 10;
 	HANDLE consoleHandle;
 	std::array<COORD, 100> Snake;
-	short score, lenght, offsetX, offsetY, screenX, screenY, trailX, trailY, movDir;
-	int keyCode, foodX, foodY;;
-	bool alive, ateFood;
+	short lenght, offsetX, offsetY, screenX, screenY, trailX, trailY, movDir, movDir1, movDir2;
+	int input, *inputVar, foodX, foodY, score;;
+	bool alive, ateFood, inputToFirstDir, useFirstInp;
 	COORD gotoCoord;
 	CONSOLE_SCREEN_BUFFER_INFO csbiScreenInfo;
 	
+	enum ColorCode {
+		BLUE = 1, GREEN = 2, RED = 4, INTENSITY = 8
+	};
+
 	void Draw(short coordX, short coordY, char symbol) {
 		SetConsoleCursorPosition(consoleHandle, {coordX * 2 + offsetX, coordY + offsetY });
 		std::cout << symbol;
@@ -81,37 +90,51 @@ private:
 		score = 0;
 		lenght = 3;
 		alive = true;
-		movDir = 97;
 		Snake[0] = {width / 2, heigh / 2};
 		Snake[1] = { width / 2 + 1, heigh / 2 };
 		Snake[2] = { width / 2 + 2, heigh / 2 };
-		keyCode = 97; //input 'a'
+		movDir1 = A;
+		movDir2 = A;
+		input = A;
+		useFirstInp = true;
+		inputToFirstDir = true;
 		CreateFood();
 	}
 	void Input() {
 		if (_kbhit() == 1)
 		{
-			keyCode = _getch();
+			input = _getch();
+			input = *inputVar;
 			//if 'w' after 's'
-			if (movDir == 115 && keyCode == 119) {
-				keyCode = movDir;
+			if (movDir1 == S && input == W) {
+				input = movDir1;
 			}
 			//if 's' after 'w'
-			else if (movDir == 119 && keyCode == 115) {
-				keyCode = movDir;
+			else if (movDir1 == W && input == S) {
+				input = movDir1;
 			}
 			//if 'a' after 'd'
-			else if (movDir == 100 && keyCode == 97) {
-				keyCode = movDir;
+			else if (movDir1 == D && input == A) {
+				input = movDir1;
 			}
 			//if 'd' after 'a'
-			else if (movDir == 97 && keyCode == 100) {
-				keyCode = movDir;
+			else if (movDir1 == A && input == D) {
+				input = movDir1;
 			}
-			else if(keyCode != 97 && keyCode != 100 && keyCode != 115 && keyCode != 119) {
-				keyCode = movDir;
+			else if(input != A && input != D && input != W && input != S) {
+				input = movDir1;
 			}
-			gotoxy(5, 8);
+
+			if (inputToFirstDir) {
+				movDir1 = input;
+				movDir2 = input;
+				useFirstInp = true;
+				inputToFirstDir = false;
+			}
+			else {
+				movDir2 = input;
+				inputToFirstDir = true;
+			}
 		}
 	}
 	void CreateFood() {
@@ -146,23 +169,28 @@ private:
 		}
 	}
 	void MoveSnake() {
-		movDir = keyCode;
+		if (useFirstInp) {
+			movDir = movDir1;
+			useFirstInp = false;
+		}
+		else {
+			movDir = movDir2;
+			movDir1 = movDir2;
+			useFirstInp = true;
+			inputToFirstDir = true;
+		}
 		MoveBody();
 		switch (movDir) {
-			//A
-			case 97: 
+			case A: 
 				Snake[0] = { Snake[0].X - 1, Snake[0].Y };
 				break;
-			//D
-			case 100:
+			case D:
 				Snake[0] = { Snake[0].X + 1, Snake[0].Y };
 				break;
-			//W
-			case 119:
+			case W:
 				Snake[0] = { Snake[0].X, Snake[0].Y - 1};
 				break;
-			//S
-			case 115:
+			case S:
 				Snake[0] = { Snake[0].X, Snake[0].Y + 1 };
 				break;
 

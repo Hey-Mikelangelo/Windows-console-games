@@ -1,11 +1,6 @@
 #pragma once
-#include <iostream>
-#include <windows.h>
-#include <conio.h>
-#include "SnakeGame.h"
-#include <cwchar>
-#include <string>
-#include <array>
+#include "Headers.h"
+#include "Input.h"
 using std::cout;
 
 typedef void(*FunctionPointer)();
@@ -15,12 +10,12 @@ public:
 	Menu() {
 		initiated = false;
 	}
-	Menu(HANDLE consoleHandle_)
+	Menu(HANDLE consoleHandle_, int* inputVar_)
 	{
 		consoleHandle = consoleHandle_;
 		initiated = false;
+		inputVar = inputVar_;
 	}
-
 	void initFuntion(FunctionPointer Function_) {
 		Function = Function_;
 		isAFunction = true;
@@ -35,6 +30,7 @@ public:
 		buttonCount = buttonCount_;
 		subtitle = menuSubTitle_;
 
+		titleLength = (short)(title.length());
 		menuChoice = 0;
 		hitEnter = false;
 		closeMenu = false;
@@ -71,41 +67,17 @@ public:
 	void changeSubTitle(std::string newSubTitle) {
 		subtitle = newSubTitle;
 	}
-
-private:
+protected:
 	HANDLE consoleHandle;
-	std::string title;
-	std::string* Buttons;
-	Menu** MenuLinks;
-	FunctionPointer* ButtonFunc;
-	short buttonCount;
-	std::string subtitle;
-
-	short menuChoice;
-	int input;
+	int input, *inputVar;
 	short screenWidth, screenHeigh;
-	bool hitEnter, closeMenu, isAFunction, initiated;
-	FunctionPointer Function;
 
-	enum KeyCode {
-		W = 119, S = 115, A = 97, D = 100, SPACE = 32, ENTER = 13
-	};
+	
+
 	enum ColorCode {
 		BLUE = 1, GREEN = 2, RED = 4, INTENSITY = 8
 	};
-	void resizeScreen() {
-		CONSOLE_CURSOR_INFO cursorInfo;
-		//Make cursor invisible
-		GetConsoleCursorInfo(consoleHandle, &cursorInfo);   //copying cursor info
-		cursorInfo.bVisible = false;                        //changing cursor visibility to false
-		SetConsoleCursorInfo(consoleHandle, &cursorInfo);   //setting back cursor info
 
-		//set width ang heigh
-		CONSOLE_SCREEN_BUFFER_INFO csbiScreenInfo;
-		GetConsoleScreenBufferInfo(consoleHandle, &csbiScreenInfo);
-		screenWidth = csbiScreenInfo.srWindow.Right;
-		screenHeigh = csbiScreenInfo.srWindow.Bottom;
-	}
 	void cls() {
 		system("CLS");
 	}
@@ -119,15 +91,45 @@ private:
 		gotoxy(0, 0);
 		cout << " ";
 	}
+
 	void Input() {
 		input = -1;
 		if (_kbhit() == 1)
 		{
 			input = _getch();
+			input = *inputVar;
 		}
-
-		
 	}
+	void updateScreenDimInfo() {
+		CONSOLE_SCREEN_BUFFER_INFO csbiScreenInfo;
+		GetConsoleScreenBufferInfo(consoleHandle, &csbiScreenInfo);
+		screenWidth = csbiScreenInfo.srWindow.Right;
+		screenHeigh = csbiScreenInfo.srWindow.Bottom;
+	}
+private:
+	std::string title;
+	std::string* Buttons;
+	Menu** MenuLinks;
+	FunctionPointer* ButtonFunc;
+	short buttonCount;
+	std::string subtitle;
+
+	short menuChoice;
+	short subtitleLength, titleLength;
+	
+	bool hitEnter, closeMenu, isAFunction, initiated;
+	FunctionPointer Function;
+
+	void resizeScreen() {
+		CONSOLE_CURSOR_INFO cursorInfo;
+		//Make cursor invisible
+		GetConsoleCursorInfo(consoleHandle, &cursorInfo);   //copying cursor info
+		cursorInfo.bVisible = false;                        //changing cursor visibility to false
+		SetConsoleCursorInfo(consoleHandle, &cursorInfo);   //setting back cursor info
+
+		updateScreenDimInfo();
+	}
+	
 	void setMenuChoice() {
 		hitEnter = false;
 		//if 's'
@@ -152,19 +154,17 @@ private:
 	}
 	
 	void drawTitle() {
-		
-		short titleLength = (short)(title.length());
-		short placeToWrite = screenWidth / 2 - (titleLength / 2);
+		short xToWrite = screenWidth / 2 - (titleLength / 2);
 		SetConsoleTextAttribute(consoleHandle, 7);
 		gotoxy(0, 0);
-		gotoxy(placeToWrite, (screenHeigh / 2) - 3);
+		gotoxy(xToWrite, (screenHeigh / 2) - 3);
 		cout << title;
 	}
 	void drawSubtitle() {
-		short subtitleLength = (short)(subtitle.length());
-		short placeToWrite = screenWidth / 2 - (subtitleLength / 2);
+		subtitleLength = (short)(subtitle.length());
+		short xToWrite = screenWidth / 2 - (subtitleLength / 2);
 		SetConsoleTextAttribute(consoleHandle, 7);
-		gotoxy(placeToWrite, (screenHeigh / 2) - 2);
+		gotoxy(xToWrite, (screenHeigh / 2) - 2);
 		cout << subtitle;
 	}
 	void drawMenuButtons() {
@@ -191,7 +191,6 @@ private:
 		}
 	}
 	void menuSelectLoop() {
-		menuChoice = 0;
 		drawTitle();
 		drawSubtitle();
 		do {
