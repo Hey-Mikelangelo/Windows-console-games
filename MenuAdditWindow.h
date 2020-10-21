@@ -102,8 +102,6 @@ private:
 
 		while (!hitEnter) {
 			Input();
-			gotoxy(0, 4);
-			cout << input;
 			if (input != -1) {
 				anchorCorner();
 				setChangeChoice();

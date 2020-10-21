@@ -1,17 +1,13 @@
 #pragma once
-#include "Headers.h"
 #include <array>
 #include <random>
-#include "Menu.h"
-#include "Input.h"
+#include "Game.h"
 
 typedef void(*FunctionPointer)();
 
-
-
-class SnakeGame{
+class Snake : public Game{
 public:
-	SnakeGame(HANDLE consoleHandle_, int* inputVar_) {
+	Snake(HANDLE consoleHandle_, int* inputVar_) : Game(consoleHandle_, inputVar_){
 
 		consoleHandle = consoleHandle_;
 		inputVar = inputVar_;
@@ -44,14 +40,15 @@ public:
 		return difficulty;
 	}
 private:
-	short  width = 10, heigh = 10, difficulty = 10;
-	HANDLE consoleHandle;
-	std::array<COORD, 100> Snake;
-	short lenght, offsetX, offsetY, screenX, screenY, trailX, trailY, movDir, movDir1, movDir2;
-	int input, *inputVar, foodX, foodY, score;;
+	short width = 10, heigh = 10, difficulty = 10;
+	//HANDLE consoleHandle;
+	std::array<COORD, 100> SnakeBody;
+	short lenght, offsetX, offsetY, /*screenWidth, screenHeigh,*/ trailX, trailY, movDir, movDir1, movDir2;
+	//int input, * inputVar;
+	int foodX, foodY, score;;
 	bool alive, ateFood, inputToFirstDir, useFirstInp;
-	COORD gotoCoord;
-	CONSOLE_SCREEN_BUFFER_INFO csbiScreenInfo;
+	//COORD gotoCoord;
+	//CONSOLE_SCREEN_BUFFER_INFO csbiScreenInfo;
 	
 	enum ColorCode {
 		BLUE = 1, GREEN = 2, RED = 4, INTENSITY = 8
@@ -62,16 +59,16 @@ private:
 		std::cout << symbol;
 	}
 
-	void SetScreen() {
-		system("CLS");
+	//void SetScreen() {
+	//	system("CLS");
 
-		GetConsoleScreenBufferInfo(consoleHandle, &csbiScreenInfo);
-		screenX = csbiScreenInfo.srWindow.Right;            //updating screen width
-		screenY = csbiScreenInfo.srWindow.Bottom;           //updating screen heigh
-	}
+	//	GetConsoleScreenBufferInfo(consoleHandle, &csbiScreenInfo);
+	//	screenWidth = csbiScreenInfo.srWindow.Right;            //updating screen width
+	//	screenHeigh = csbiScreenInfo.srWindow.Bottom;           //updating screen heigh
+	//}
 	void CalculateOffsets() {
-		offsetX = screenX/2 - width;
-		offsetY = (screenY / 2) - (heigh / 2);
+		offsetX = screenWidth/2 - width;
+		offsetY = (screenHeigh / 2) - (heigh / 2);
 	}
 	void DrawWalls() {
 		SetConsoleTextAttribute(consoleHandle, 3);
@@ -90,9 +87,9 @@ private:
 		score = 0;
 		lenght = 3;
 		alive = true;
-		Snake[0] = {width / 2, heigh / 2};
-		Snake[1] = { width / 2 + 1, heigh / 2 };
-		Snake[2] = { width / 2 + 2, heigh / 2 };
+		SnakeBody[0] = {width / 2, heigh / 2};
+		SnakeBody[1] = { width / 2 + 1, heigh / 2 };
+		SnakeBody[2] = { width / 2 + 2, heigh / 2 };
 		movDir1 = A;
 		movDir2 = A;
 		input = A;
@@ -105,36 +102,39 @@ private:
 		{
 			input = _getch();
 			input = *inputVar;
-			//if 'w' after 's'
-			if (movDir1 == S && input == W) {
-				input = movDir1;
-			}
-			//if 's' after 'w'
-			else if (movDir1 == W && input == S) {
-				input = movDir1;
-			}
-			//if 'a' after 'd'
-			else if (movDir1 == D && input == A) {
-				input = movDir1;
-			}
-			//if 'd' after 'a'
-			else if (movDir1 == A && input == D) {
-				input = movDir1;
-			}
-			else if(input != A && input != D && input != W && input != S) {
-				input = movDir1;
-			}
+			MapInput();
+		}
+	}
+	void MapInput() {
+		//if 'w' after 's'
+		if (movDir1 == S && input == W) {
+			input = movDir1;
+		}
+		//if 's' after 'w'
+		else if (movDir1 == W && input == S) {
+			input = movDir1;
+		}
+		//if 'a' after 'd'
+		else if (movDir1 == D && input == A) {
+			input = movDir1;
+		}
+		//if 'd' after 'a'
+		else if (movDir1 == A && input == D) {
+			input = movDir1;
+		}
+		else if(input != A && input != D && input != W && input != S) {
+			input = movDir1;
+		}
 
-			if (inputToFirstDir) {
-				movDir1 = input;
-				movDir2 = input;
-				useFirstInp = true;
-				inputToFirstDir = false;
-			}
-			else {
-				movDir2 = input;
-				inputToFirstDir = true;
-			}
+		if (inputToFirstDir) {
+			movDir1 = input;
+			movDir2 = input;
+			useFirstInp = true;
+			inputToFirstDir = false;
+		}
+		else {
+			movDir2 = input;
+			inputToFirstDir = true;
 		}
 	}
 	void CreateFood() {
@@ -147,25 +147,25 @@ private:
 			}
 		}		
 	}
-	//true if there is no snake in coords
+	//true if there is no SnakeBody in coords
 	bool CheckForSnake(int x, int y, int startIdx = 0) {
 		for (int i = 0 + startIdx; i < lenght; i++) {
-			if (Snake[i].X == x && Snake[i].Y == y) {
+			if (SnakeBody[i].X == x && SnakeBody[i].Y == y) {
 				return false;
 			}
 		}
 		return true;
 	}
-	inline void gotoxy(short x, short y)
+	/*void gotoxy(short x, short y)
 	{
 		gotoCoord = { x, y };
 		SetConsoleCursorPosition(consoleHandle, gotoCoord);
-	}
+	}*/
 	void MoveBody() {
-		trailX = Snake[lenght - 1].X;
-		trailY = Snake[lenght - 1].Y;
+		trailX = SnakeBody[lenght - 1].X;
+		trailY = SnakeBody[lenght - 1].Y;
 		for (int i = lenght-1; i > 0; i--) {
-			Snake[i] = Snake[i - 1];
+			SnakeBody[i] = SnakeBody[i - 1];
 		}
 	}
 	void MoveSnake() {
@@ -182,37 +182,37 @@ private:
 		MoveBody();
 		switch (movDir) {
 			case A: 
-				Snake[0] = { Snake[0].X - 1, Snake[0].Y };
+				SnakeBody[0] = { SnakeBody[0].X - 1, SnakeBody[0].Y };
 				break;
 			case D:
-				Snake[0] = { Snake[0].X + 1, Snake[0].Y };
+				SnakeBody[0] = { SnakeBody[0].X + 1, SnakeBody[0].Y };
 				break;
 			case W:
-				Snake[0] = { Snake[0].X, Snake[0].Y - 1};
+				SnakeBody[0] = { SnakeBody[0].X, SnakeBody[0].Y - 1};
 				break;
 			case S:
-				Snake[0] = { Snake[0].X, Snake[0].Y + 1 };
+				SnakeBody[0] = { SnakeBody[0].X, SnakeBody[0].Y + 1 };
 				break;
 
 		}
 	}
 	void AddSegment() {
-		Snake[lenght] = { trailX, trailY };
+		SnakeBody[lenght] = { trailX, trailY };
 		lenght++;
 	}
 	void CheckSnake() {
-		if (Snake[0].X <= 0 || Snake[0].X >= width-1 || Snake[0].Y <= 0 || Snake[0].Y >= heigh-1) {
+		if (SnakeBody[0].X <= 0 || SnakeBody[0].X >= width-1 || SnakeBody[0].Y <= 0 || SnakeBody[0].Y >= heigh-1) {
 			alive = false;
 		}
-		else if (Snake[0].X == foodX && Snake[0].Y == foodY) {
+		else if (SnakeBody[0].X == foodX && SnakeBody[0].Y == foodY) {
 			ateFood = true;
 			score++;
 			CreateFood();
 			AddSegment();
 		}
 		int headX, headY;
-		headX = Snake[0].X;
-		headY = Snake[0].Y;
+		headX = SnakeBody[0].X;
+		headY = SnakeBody[0].Y;
 		if (!CheckForSnake(headX, headY, 1)) {
 			alive = false;
 		}
@@ -223,10 +223,10 @@ private:
 			Draw(foodX, foodY, '@');
 
 			SetConsoleTextAttribute(consoleHandle, 4);
-			Draw(Snake[0].X, Snake[0].Y, 'O');
+			Draw(SnakeBody[0].X, SnakeBody[0].Y, 'O');
 			SetConsoleTextAttribute(consoleHandle, 12);
 			for (int i = 1; i < lenght; i++) {
-				Draw(Snake[i].X, Snake[i].Y, 'O');
+				Draw(SnakeBody[i].X, SnakeBody[i].Y, 'O');
 			}
 			if (!ateFood) {
 				Draw(trailX, trailY, ' ');	//ereasing trail
@@ -236,7 +236,7 @@ private:
 			}
 		}
 	}
-	void StopUntilEnter() {
+	/*void StopUntilEnter() {
 		int key;
 		for (;;) {
 			if (_kbhit() == 1)
@@ -248,7 +248,7 @@ private:
 			}
 			Sleep(10);
 		}
-	}
+	}*/
 	int SnakeGameLoop() {
 		int i = 0;
 		do {

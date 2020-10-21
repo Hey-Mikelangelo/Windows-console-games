@@ -40,7 +40,7 @@ Menu FuncSnakeDifficulty;
 Menu FuncSnakeOptionsClose;
 
 //Games
-SnakeGame SnakeGameWindow(consoleHandle, &currentInput);
+Snake SnakeGame(consoleHandle, &currentInput);
 int snakeGameWidth = 12;
 int snakeGameHeigh = 12;
 int snakeGameDifficulty = 10;
@@ -95,15 +95,15 @@ void MenuSnakeOptionsClose() {
     MenuSnakeOptions.close();
 }
 void SnakeMenuStart() {
-    SnakeGameWindow.setWidthHeigh((short)snakeGameWidth, (short)snakeGameHeigh);
-    SnakeGameWindow.setDifficulty(snakeGameDifficulty);
-    if (SnakeGameWindow.Start() == 0) {
-        std::string subtitle = "You lose. Score: " + std::to_string(SnakeGameWindow.getScore());
+    SnakeGame.setWidthHeigh((short)snakeGameWidth, (short)snakeGameHeigh);
+    SnakeGame.setDifficulty(snakeGameDifficulty);
+    if (SnakeGame.Start() == 0) {
+        std::string subtitle = "You lose. Score: " + std::to_string(SnakeGame.getScore());
         MenuSnakeMenu.changeSubTitle(subtitle);
         FuncSnakeGameStart.close();
     }
     else {
-        std::string subtitle = "You won. Score: " + std::to_string(SnakeGameWindow.getScore());
+        std::string subtitle = "You won. Score: " + std::to_string(SnakeGame.getScore());
         MenuSnakeMenu.changeSubTitle(subtitle);
         FuncSnakeGameStart.close();
     }
